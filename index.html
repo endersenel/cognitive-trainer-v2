@@ -48,29 +48,29 @@ h1 { margin: 0 0 6px 0; font-size: clamp(0.85rem, 3vw, 1.1rem); color: #00e5ff; 
 #antisaccade-right-zone { right: 0; }
 
 #dual-buttons { display: none; width: calc(100% - 20px); max-width: 400px; gap: 20px; justify-content: center; z-index: 100; position: absolute; bottom: 15px; }
-.choice-btn { flex: 1; padding: 16px 0; font-size: 1rem; font-weight: bold; border-radius: 10px; border: 2px solid #fff; text-align: center; color: #fff; }
+.choice-btn { flex: 1; padding: 16px 0; font-size: 1rem; font-weight: bold; border-radius: 10px; border: 2px solid #fff; text-align: center; color: #fff; cursor: pointer; }
 .btn-left { background: #ff1744; }
 .btn-right { background: #29b6f6; }
 
-#target-circle { position: absolute; transform: translate(-50%, -50%); width: clamp(100px, 25vw, 140px); height: clamp(100px, 25vw, 140px); border-radius: 50%; background: #000; border: 3px solid #fff; display: none; justify-content: center; align-items: center; font-size: clamp(1.2rem, 4vw, 1.8rem); font-weight: 900; box-shadow: 0 0 25px rgba(255,255,255,0.4); text-align: center; padding: 8px; z-index: 200; }
+#target-circle { position: absolute; transform: translate(-50%, -50%); width: clamp(100px, 25vw, 140px); height: clamp(100px, 25vw, 140px); border-radius: 50%; background: #000; border: 3px solid #fff; display: none; justify-content: center; align-items: center; font-size: clamp(1.2rem, 4vw, 1.8rem); font-weight: 900; box-shadow: 0 0 25px rgba(255,255,255,0.4); text-align: center; padding: 8px; z-index: 200; cursor: pointer; }
 #target-circle.wide { width: auto; height: auto; min-width: 150px; border-radius: 18px; padding: 14px 22px; letter-spacing: 2px; white-space: nowrap; }
 
 #spatial-grid { display: none; grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr; gap: 8px; width: 100%; height: 100%; max-width: 500px; max-height: 500px; margin: auto; z-index: 100; }
 #spatial-grid.compact { height: 52%; align-self: flex-end; }
-.spatial-btn { border-radius: 12px; opacity: 0.3; transition: opacity 0.1s; display: flex; justify-content: center; align-items: center; font-size: clamp(1.1rem, 4vw, 1.6rem); font-weight: 900; color: #000; border: 2px solid #fff; width: 100%; height: 100%; }
+.spatial-btn { border-radius: 12px; opacity: 0.3; transition: opacity 0.1s; display: flex; justify-content: center; align-items: center; font-size: clamp(1.1rem, 4vw, 1.6rem); font-weight: 900; color: #000; border: 2px solid #fff; width: 100%; height: 100%; cursor: pointer; }
 .spatial-btn.active { opacity: 1; box-shadow: 0 0 35px #fff; transform: scale(0.98); }
 #spatial-grid.all-on .spatial-btn { opacity: 1; }
 
 #memory-grid { display: none; grid-template-columns: repeat(3, 1fr); grid-template-rows: repeat(3, 1fr); gap: 8px; width: min(70vw, 280px); aspect-ratio: 1; margin: auto; z-index: 100; }
-.memory-block { background: #222; border: 2px solid #00e5ff; border-radius: 8px; width: 100%; height: 100%; }
+.memory-block { background: #222; border: 2px solid #00e5ff; border-radius: 8px; width: 100%; height: 100%; cursor: pointer; }
 .memory-block.lit { background: #00e5ff !important; box-shadow: 0 0 25px #00e5ff !important; }
 
 #numpad-grid { display: none; grid-template-columns: repeat(3, 1fr); gap: 8px; width: min(75vw, 260px); margin: auto; z-index: 100; }
-.num-btn { background: #222; border: 1px solid #00e5ff; color: #fff; font-size: 1.2rem; font-weight: bold; padding: 12px 0; border-radius: 6px; text-align: center; }
+.num-btn { background: #222; border: 1px solid #00e5ff; color: #fff; font-size: 1.2rem; font-weight: bold; padding: 12px 0; border-radius: 6px; text-align: center; cursor: pointer; }
 
 #trail-area { display: none; position: relative; width: 100%; align-self: stretch; flex: 1; z-index: 100; }
 #trail-area svg { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
-.trail-node { position: absolute; width: clamp(38px, 9vw, 46px); height: clamp(38px, 9vw, 46px); border-radius: 50%; background: #00e5ff; color: #000; font-weight: 900; font-size: clamp(0.85rem, 2.5vw, 1.1rem); display: flex; justify-content: center; align-items: center; box-shadow: 0 0 10px rgba(0,0,0,0.5); border: 2px solid #fff; z-index: 2; }
+.trail-node { position: absolute; width: clamp(38px, 9vw, 46px); height: clamp(38px, 9vw, 46px); border-radius: 50%; background: #00e5ff; color: #000; font-weight: 900; font-size: clamp(0.85rem, 2.5vw, 1.1rem); display: flex; justify-content: center; align-items: center; box-shadow: 0 0 10px rgba(0,0,0,0.5); border: 2px solid #fff; z-index: 2; cursor: pointer; }
 .trail-node.done { background: #00e676; opacity: 0.35; }
 
 #controls { padding: 8px 12px; background: #151515; display: flex; gap: 8px; justify-content: center; flex-shrink: 0; border-top: 1px solid #333; width: 100%; }
@@ -185,9 +185,7 @@ button:disabled { background: #333 !important; color: #666 !important; cursor: n
 <script>
 /* ================== AYARLAR ================== */
 const APP_VERSION = "2.1";
-// Kendi Google Apps Script Web App URL'ni yaz. Boş bırakılırsa sunucuya gönderim yapılmaz.
 const API_URL = "";
-// Sunucu tarafında bu token'ı doğrulayın (istemcideki token tek başına güvenlik sağlamaz).
 const API_TOKEN = "";
 
 /* ================== YARDIMCILAR ================== */
@@ -300,7 +298,12 @@ function lightCone(key) { cones.forEach(c => c.classList.toggle('active', c.data
 function hideStim() {
     circle.style.display = 'none';
     zoneBox.style.display = 'none';
+    dualButtons.style.display = 'none';
+    gameArea.classList.remove('has-buttons');
+    spatialGrid.style.display = 'none';
+    memoryGrid.style.display = 'none';
     numpadGrid.style.display = 'none';
+    trailArea.style.display = 'none';
     cones.forEach(c => c.classList.remove('active'));
     memoryGrid.querySelectorAll('.lit').forEach(b => b.classList.remove('lit'));
 }
@@ -345,6 +348,7 @@ function endTrial(o) {
     record(o);
     fb(o.correct);
     if (!o.correct) beep(150, 0.2);
+    else beep(600, 0.1);
     hideStim();
     T.set(nextTrial, o.delay || 600);
 }
@@ -368,9 +372,8 @@ const okRows = r => r.filter(x => x.correct);
 const errCount = r => r.filter(x => !x.correct).length;
 const meanRT = r => mean(r.filter(x => x.correct && x.rt != null).map(x => x.rt));
 const scRT = div => r => (okRows(r).length / r.length) * 1000 - (meanRT(r) || 0) / div - errCount(r) * 20;
-const spanOf = r => Math.max(0, ...okRows(r).map(x => parseInt(x.condition.slice(1)) || 0));
 
-function zinv(p) { // Abramowitz-Stegun 26.2.23
+function zinv(p) {
     const t = Math.sqrt(-2 * Math.log(p < 0.5 ? p : 1 - p));
     const x = t - (2.515517 + 0.802853 * t + 0.010328 * t * t) / (1 + 1.432788 * t + 0.189269 * t * t + 0.001308 * t * t * t);
     return p < 0.5 ? -x : x;
@@ -381,7 +384,6 @@ function nbackStats(r) {
     const H = (hits + 0.5) / (m.length + 1), F = (fa + 0.5) / (n.length + 1);
     return { hits, nM: m.length, fa, nN: n.length, d: zinv(H) - zinv(F) };
 }
-// Trail: her doğru dokunuş bir "aralık" (leg) satırıdır. rt = aralık süresi, cum = başlangıçtan toplam süre
 const TRAIL_LEN = 20;
 function trailStats(r) {
     const legs = r.filter(x => x.correct && x.condition === 'REAL');
@@ -495,3 +497,471 @@ const MODS = {
             });
         }
     },
+
+    antisaccade: {
+        title: "5. Anti-Saccade Testi", text: "Ekranın bir tarafında Flaş patlayacak. Flaşa BAKMAYIN, BASTIRIN ve TERSİNDEKİ ekrana dokunun!",
+        eval: "Ölçülen Yetenek: Okülomotor İnhibisyon.", formula: RT_FORMULA, practice: 2, total: 10, score: scRT(2),
+        setup() { zoneBox.style.display = 'block'; },
+        trial() {
+            zoneBox.style.display = 'block';
+            delayThenPresent(() => {
+                const flashLeft = Math.random() < 0.5, cond = flashLeft ? 'FLASH_LEFT' : 'FLASH_RIGHT';
+                setCircle(flashLeft ? 15 : 85, 42, { bg: '#fff', events: false });
+                T.set(() => { circle.style.display = 'none'; }, 150);
+                S.resp = (src, ev) => {
+                    if (src !== 'zone-left' && src !== 'zone-right') return;
+                    const pressedLeft = src === 'zone-left';
+                    const ok = flashLeft ? !pressedLeft : pressedLeft;
+                    endTrial({ correct: ok, note: ok ? 'Doğru Refleks Bastırma' : 'Flaş Yönüne Hatalı Bakış', rt: rtFrom(ev), cond, resp: pressedLeft ? 'LEFT' : 'RIGHT' });
+                };
+                T.set(() => endTrial({ correct: false, note: 'Cevapsız', cond, resp: 'NONE' }), 1800);
+            });
+        }
+    },
+
+    trailA: {
+        title: "6. Trail Making Test A", text: "1'den 20'ye kadar olan sayıları sırasıyla en hızlı şekilde takip edip dokunun.",
+        eval: "Ölçülen Yetenek: Görsel Arama & Motor Hız.", formula: "Puan = Tamamlama Süresi Tesis Etme", practice: 0, total: 1, open: true,
+        score: r => { const s = trailStats(r); return s.sec ? Math.max(0, Math.round(1000 - s.sec * 20 - s.err * 30)) : 0; },
+        extra: r => { const s = trailStats(r); return [`Toplam Süre: ${s.sec ? s.sec.toFixed(2) + ' sn' : 'Tamamlanmadı'}`, `Hata Sayısı: ${s.err}`]; },
+        setup() { initTrail(false); },
+        trial() {}
+    },
+
+    trailB: {
+        title: "7. Trail Making Test B", text: "Bir Sayı bir Harf sırasıyla (1-A-2-B-3-C...) hedeflere dokunun.",
+        eval: "Ölçülen Yetenek: Bilişsel Esneklik & Görev Değiştirme.", formula: "Puan = Bilişsel Esneklik Derecesi", practice: 0, total: 1, open: true,
+        score: r => { const s = trailStats(r); return s.sec ? Math.max(0, Math.round(1200 - s.sec * 20 - s.err * 40)) : 0; },
+        extra: r => { const s = trailStats(r); return [`Toplam Süre: ${s.sec ? s.sec.toFixed(2) + ' sn' : 'Tamamlanmadı'}`, `Hata Sayısı: ${s.err}`]; },
+        setup() { initTrail(true); },
+        trial() {}
+    },
+
+    memory: {
+        title: "8. Görsel Dizilim Bellek (Corsi)", text: "Ekranda sırayla yanan blok dizilimini aklınızda tutun ve aynı sırada dokunun.",
+        eval: "Ölçülen Yetenek: Görsel-Mekânsal Çalışma Belleği.", formula: "Puan = Maksimum Bellek Menzili × 100", practice: 0, total: 10, open: true,
+        score: r => spanOf(r) * 100, extra: r => [`Erişilen Bellek Menzili (Span): ${spanOf(r)}`],
+        setup() { initMemoryGrid(); S.ctx.len = 3; },
+        trial() { playMemorySequence(); }
+    },
+
+    nback: {
+        title: "9. Spatial N-Back Bellek", text: "Işığın yandığı konum, N adım önceki konumla AYNI ise 'EŞLEŞTİ' butonuna basın.",
+        eval: "Ölçülen Yetenek: Çalışma Belleği Güncelleme.", formula: "Puan = d-prime × 200", practice: 0, total: 12,
+        score: r => Math.max(0, Math.round(nbackStats(r).d * 200)),
+        extra: r => { const s = nbackStats(r); return [`İsabet: ${s.hits}/${s.nM}`, `Yanlış Alarm: ${s.fa}/${s.nN}`, `Hassasiyet (d'): ${s.d.toFixed(2)}`]; },
+        setup() { setDual("EŞLEŞTİ", "FARKLI"); S.ctx.hist = []; S.ctx.n = parseInt($('nback-n-select').value) || 2; },
+        trial() {
+            setGrid({ compact: true });
+            delayThenPresent(() => {
+                const k = pick(KEYS);
+                lightCone(k);
+                S.ctx.hist.push(k);
+                const n = S.ctx.n, idx = S.ctx.hist.length - 1;
+                const isMatch = idx >= n && S.ctx.hist[idx] === S.ctx.hist[idx - n];
+                const cond = isMatch ? 'MATCH' : 'NONMATCH';
+
+                S.resp = (src, ev) => {
+                    if (src !== 'left' && src !== 'right') return;
+                    const pressedMatch = src === 'left';
+                    const ok = pressedMatch === isMatch;
+                    endTrial({ correct: ok, note: ok ? 'Doğru' : 'Hata', rt: rtFrom(ev), cond, resp: pressedMatch ? 'MATCH' : 'NONMATCH' });
+                };
+                T.set(() => {
+                    lightCone(null);
+                    if (S.waiting) endTrial({ correct: !isMatch, note: isMatch ? 'Eşleşme Kaçırıldı' : 'Doğru Pas', cond, resp: 'NONE' });
+                }, 1500);
+            });
+        }
+    },
+
+    digit_span: {
+        title: "10. Görsel Sayı Dizilimi Belleği", text: "Ekranda sırayla gösterilen sayıları aklınızda tutun ve klavyeden sırayla girin.",
+        eval: "Ölçülen Yetenek: Sayısal Çalışma Belleği Kapasitesi.", formula: "Puan = Maksimum Sayı Menzili × 100", practice: 0, total: 10, open: true,
+        score: r => spanOf(r) * 100, extra: r => [`Maksimum Sayı Menzili: ${spanOf(r)}`],
+        setup() { initNumpad(); S.ctx.len = parseInt($('digit-length-select').value) || 4; },
+        trial() { playDigitSequence(); }
+    },
+
+    sprint_ball: {
+        title: "11. Saha Depar: Top Getirme", text: "Saha depar komut uyarısı geldiğinde depara kalkın ve hedefe dokunun.",
+        eval: "Ölçülen Yetenek: Akselerasyon & Reaksiyon.", formula: FIELD_FORMULA, practice: 1, total: 5, score: scRT(10),
+        setup() {},
+        trial() {
+            delayThenPresent(() => {
+                setCircle(50, 42, { bg: '#00e676', color: '#000', text: 'KOŞ!' });
+                speak("Go");
+                S.resp = (src, ev) => { if (src !== 'circle') return; endTrial({ correct: true, note: 'Tamamlandı', rt: rtFrom(ev), cond: 'SPRINT', resp: 'TAP' }); };
+                T.set(() => endTrial({ correct: false, note: 'Zaman Aşımı', cond: 'SPRINT', resp: 'NONE' }), 4000);
+            });
+        }
+    },
+
+    agility_run: {
+        title: "12. Renk Koni Çeviklik Deparı", text: "Söylenen veya gösterilen renkli koniye en hızlı şekilde yönlenin.",
+        eval: "Ölçülen Yetenek: Yön Değiştirme & Uyaran Reaksiyonu.", formula: FIELD_FORMULA, practice: 1, total: 6, score: scRT(10),
+        setup() { setGrid({ allOn: true }); },
+        trial() {
+            delayThenPresent(() => {
+                const target = pick(KEYS);
+                lightCone(target);
+                speak(COLORS[target].en);
+                S.resp = (src, ev) => {
+                    if (!src.startsWith('cone:')) return;
+                    const ok = src.slice(5) === target;
+                    endTrial({ correct: ok, note: ok ? 'Doğru Koni' : 'Yanlış Koni', rt: rtFrom(ev), cond: target.toUpperCase(), resp: src.slice(5).toUpperCase() });
+                };
+                T.set(() => endTrial({ correct: false, note: 'Zaman Aşımı', cond: target.toUpperCase(), resp: 'NONE' }), 4000);
+            });
+        }
+    },
+
+    complex_agility: {
+        title: "13. Karmaşık Çift Komut Deparı (Go/No-Go)", text: "Sesli ve görsel komut eşleşirse depar atın, çelişirse DURUN!",
+        eval: "Ölçülen Yetenek: Karmaşık Sahada Karar Verme.", formula: FIELD_FORMULA, practice: 1, total: 6, score: scRT(10),
+        setup() { setGrid({ allOn: true }); },
+        trial() {
+            delayThenPresent(() => {
+                const visual = pick(KEYS), audio = Math.random() < 0.5 ? visual : pick(KEYS.filter(k => k !== visual));
+                const match = visual === audio;
+                lightCone(visual);
+                speak(COLORS[audio].en);
+
+                S.resp = (src, ev) => {
+                    if (!src.startsWith('cone:')) return;
+                    endTrial({ correct: match, note: match ? 'Doğru Reaksiyon' : 'Hatalı Depar', rt: rtFrom(ev), cond: match ? 'MATCH' : 'MISMATCH', resp: 'TAP' });
+                };
+                if (match) T.set(() => endTrial({ correct: false, note: 'Cevapsız (Omisyon)', cond: 'MATCH', resp: 'NONE' }), 3000);
+                else T.set(() => endTrial({ correct: true, note: 'Doğru İnhibisyon', cond: 'MISMATCH', resp: 'NONE' }), 2000);
+            });
+        }
+    },
+
+    choice_react: {
+        title: "14. Çoklu Seçenek Reaksiyon Deparı", text: "Ekranda beliren sembole karşılık gelen hedefe dokunun (▲, ●, ■, ★).",
+        eval: "Ölçülen Yetenek: Çoklu Seçenek Reaksiyon Süresi (Hick Law).", formula: FIELD_FORMULA, practice: 1, total: 8, score: scRT(10),
+        setup() { setGrid({ labels: SYMBOLS, allOn: true }); },
+        trial() {
+            delayThenPresent(() => {
+                const idx = rnd(4), targetSymbol = SYMBOLS[idx], targetKey = KEYS[idx];
+                setCircle(50, 22, { bg: '#000', color: '#00e5ff', text: targetSymbol, events: false });
+                S.resp = (src, ev) => {
+                    if (!src.startsWith('cone:')) return;
+                    const ok = src.slice(5) === targetKey;
+                    endTrial({ correct: ok, note: ok ? 'Doğru Seçenek' : 'Yanlış Seçenek', rt: rtFrom(ev), cond: targetSymbol, resp: src.slice(5).toUpperCase() });
+                };
+                T.set(() => endTrial({ correct: false, note: 'Zaman Aşımı', cond: targetSymbol, resp: 'NONE' }), 3000);
+            });
+        }
+    },
+
+    visual_search: {
+        title: "15. Görsel Arama & Depar", text: "Çeldiriciler arasında hedef sembolü ('★') bulun ve ona dokunun.",
+        eval: "Ölçülen Yetenek: Görsel Taramalı Arama Hızı.", formula: FIELD_FORMULA, practice: 1, total: 6, score: scRT(10),
+        setup() { setGrid({ allOn: true }); },
+        trial() {
+            delayThenPresent(() => {
+                const targetIdx = rnd(4);
+                const currentSymbols = ['▲', '●', '■', '▲'];
+                currentSymbols[targetIdx] = '★';
+                setGrid({ labels: currentSymbols, allOn: true });
+
+                S.resp = (src, ev) => {
+                    if (!src.startsWith('cone:')) return;
+                    const ok = src.slice(5) === KEYS[targetIdx];
+                    endTrial({ correct: ok, note: ok ? 'Hedef Bulundu' : 'Hatalı Hedef', rt: rtFrom(ev), cond: 'SEARCH', resp: src.slice(5).toUpperCase() });
+                };
+                T.set(() => endTrial({ correct: false, note: 'Zaman Aşımı', cond: 'SEARCH', resp: 'NONE' }), 4000);
+            });
+        }
+    }
+};
+
+/* ================== TRAIL, MEMORY, NUMPAD ÖZEL MANTIKLARI ================== */
+function initTrail(isB) {
+    trailArea.innerHTML = ''; trailArea.style.display = 'block';
+    const seq = isB ? ['1','A','2','B','3','C','4','D','5','E','6','F','7','G','8','H','9','I','10','J'] : Array.from({length:20}, (_,i)=>(i+1).toString());
+    S.ctx.seq = seq; S.ctx.step = 0; S.ctx.tStart = performance.now(); S.ctx.lastT = performance.now();
+
+    const positions = [];
+    const size = 42;
+    for (let i = 0; i < seq.length; i++) {
+        let x, y, overlap;
+        let attempts = 0;
+        do {
+            overlap = false;
+            x = 5 + rnd(82);
+            y = 5 + rnd(82);
+            for (let p of positions) {
+                if (Math.hypot(p.x - x, p.y - y) < 14) { overlap = true; break; }
+            }
+            attempts++;
+        } while (overlap && attempts < 100);
+        positions.push({x, y});
+
+        const node = document.createElement('div');
+        node.className = 'trail-node';
+        node.style.left = x + '%'; node.style.top = y + '%';
+        node.textContent = seq[i];
+        node.dataset.idx = i;
+        node.addEventListener('pointerdown', (e) => {
+            e.preventDefault();
+            if (!S.active) return;
+            const idx = parseInt(node.dataset.idx);
+            const now = performance.now();
+            if (idx === S.ctx.step) {
+                node.classList.add('done');
+                const legRt = Math.round(now - S.ctx.lastT);
+                const cum = Math.round(now - S.ctx.tStart);
+                S.ctx.lastT = now;
+                record({ trial: idx + 1, practice: 0, cond: 'REAL', resp: seq[idx], rt: legRt, cum: cum, correct: 1, note: `Hedef ${seq[idx]}` });
+                S.ctx.step++;
+                beep(600, 0.08);
+                if (S.ctx.step >= seq.length) finishTest();
+            } else {
+                record({ trial: S.ctx.step + 1, practice: 0, cond: 'REAL', resp: seq[idx], rt: 0, cum: Math.round(now - S.ctx.tStart), correct: 0, note: `Hata: ${seq[idx]} tıklandı` });
+                beep(150, 0.2);
+                fb(false);
+            }
+        });
+        trailArea.appendChild(node);
+    }
+    S.t0 = performance.now();
+    S.active = true;
+}
+
+function initMemoryGrid() {
+    memoryGrid.innerHTML = ''; memoryGrid.style.display = 'grid';
+    for (let i = 0; i < 9; i++) {
+        const b = document.createElement('div');
+        b.className = 'memory-block';
+        b.dataset.idx = i;
+        b.addEventListener('pointerdown', (e) => {
+            e.preventDefault();
+            input(`mem:${i}`, e);
+        });
+        memoryGrid.appendChild(b);
+    }
+}
+
+function playMemorySequence() {
+    const blocks = [...memoryGrid.children];
+    const len = S.ctx.len;
+    const seq = Array.from({length: len}, () => rnd(9));
+    S.ctx.seq = seq; S.ctx.user = [];
+
+    let i = 0;
+    S.waiting = false;
+    const interval = setInterval(() => {
+        if (!S.active) { clearInterval(interval); return; }
+        if (i > 0) blocks[seq[i-1]].classList.remove('lit');
+        if (i < len) {
+            blocks[seq[i]].classList.add('lit');
+            beep(400 + seq[i] * 50, 0.2);
+            i++;
+        } else {
+            clearInterval(interval);
+            S.t0 = performance.now();
+            S.waiting = true;
+            S.resp = (src) => {
+                if (!src.startsWith('mem:')) return;
+                const idx = parseInt(src.slice(4));
+                S.ctx.user.push(idx);
+                blocks[idx].classList.add('lit');
+                T.set(() => blocks[idx].classList.remove('lit'), 150);
+                beep(500, 0.1);
+
+                const currentStep = S.ctx.user.length - 1;
+                if (S.ctx.user[currentStep] !== seq[currentStep]) {
+                    endTrial({ correct: false, note: `Yanlış Dizi (Sırada ${S.ctx.len})`, cond: `L${S.ctx.len}`, resp: 'FAIL' });
+                    S.ctx.len = Math.max(3, S.ctx.len - 1);
+                } else if (S.ctx.user.length === seq.length) {
+                    endTrial({ correct: true, note: `Doğru Dizi (Sırada ${S.ctx.len})`, cond: `L${S.ctx.len}`, resp: 'SUCCESS' });
+                    S.ctx.len++;
+                }
+            };
+        }
+    }, 600);
+}
+
+function initNumpad() {
+    numpadGrid.innerHTML = ''; numpadGrid.style.display = 'grid';
+    for (let i = 1; i <= 9; i++) {
+        const b = document.createElement('div');
+        b.className = 'num-btn'; b.textContent = i;
+        b.addEventListener('pointerdown', (e) => { e.preventDefault(); input(`num:${i}`, e); });
+        numpadGrid.appendChild(b);
+    }
+}
+
+function playDigitSequence() {
+    const len = S.ctx.len;
+    const seq = Array.from({length: len}, () => rnd(9) + 1);
+    S.ctx.seq = seq; S.ctx.user = [];
+    let i = 0;
+    S.waiting = false;
+
+    const interval = setInterval(() => {
+        if (!S.active) { clearInterval(interval); return; }
+        if (i < len) {
+            setCircle(50, 42, { bg: '#222', color: '#00e5ff', text: seq[i], events: false });
+            beep(500, 0.15);
+            i++;
+        } else {
+            clearInterval(interval);
+            circle.style.display = 'none';
+            numpadGrid.style.display = 'grid';
+            S.t0 = performance.now();
+            S.waiting = true;
+
+            S.resp = (src) => {
+                if (!src.startsWith('num:')) return;
+                const num = parseInt(src.slice(4));
+                S.ctx.user.push(num);
+                beep(600, 0.08);
+
+                const step = S.ctx.user.length - 1;
+                if (S.ctx.user[step] !== seq[step]) {
+                    endTrial({ correct: false, note: `Yanlış Sayı (Uzunluk ${S.ctx.len})`, cond: `L${S.ctx.len}`, resp: S.ctx.user.join('') });
+                    S.ctx.len = Math.max(3, S.ctx.len - 1);
+                } else if (S.ctx.user.length === seq.length) {
+                    endTrial({ correct: true, note: `Doğru Dizilim (Uzunluk ${S.ctx.len})`, cond: `L${S.ctx.len}`, resp: S.ctx.user.join('') });
+                    S.ctx.len++;
+                }
+            };
+        }
+    }, 800);
+}
+
+/* ================== ARAYÜZ VE ETKİNLİK DİNLENİCİLERİ ================== */
+function updateModuleUI() {
+    const key = moduleSelect.value;
+    const m = MODS[key];
+    if (!m) return;
+    $('instr-title').textContent = m.title;
+    $('instr-text').textContent = m.text;
+    $('instr-eval').textContent = m.eval \vert{}\vert{} '';$('instr-score-formula').textContent = m.formula ? `Formül: ${m.formula}` : '';
+    instructionCard.style.display = 'block';
+
+    $('opt-digit').style.display = key === 'digit_span' ? 'flex' : 'none';$('opt-nback').style.display = key === 'nback' ? 'flex' : 'none';
+    
+    hideStim();
+}
+
+moduleSelect.addEventListener('change', updateModuleUI);
+
+// Input Etkileşim Bağlantıları
+circle.addEventListener('pointerdown', e => input('circle', e));
+btnLeft.addEventListener('pointerdown', e => input('left', e));
+btnRight.addEventListener('pointerdown', e => input('right', e));
+$('antisaccade-left-zone').addEventListener('pointerdown', e => input('zone-left', e));$('antisaccade-right-zone').addEventListener('pointerdown', e => input('zone-right', e));
+cones.forEach(c => c.addEventListener('pointerdown', e => input(`cone:${c.dataset.key}`, e)));
+
+/* ================== TEST BAŞLAT / DURDUR ================== */
+function startTest() {
+    S.mod = moduleSelect.value;
+    const m = MODS[S.mod];
+    if (!m) return;
+
+    S.run++;
+    S.active = true;
+    S.waiting = false;
+    S.rows = [];
+    S.idx = 0;
+    S.practiceN = m.practice || 0;
+    S.total = m.total || 10;
+    S.sessionId = 'S_' + Date.now();
+    S.athlete = {
+        id: $('athlete-id').value || 'SP-101',
+        age: $('athlete-age').value,
+        gender: $('athlete-gender').value,
+        sport: $('athlete-sport').value,
+        dominant: $('athlete-dominant').value,
+        exp: $('athlete-exp').value,
+        screen: `${window.innerWidth}x${window.innerHeight}`,
+        ua: navigator.userAgent
+    };
+
+    instructionCard.style.display = 'none';
+    startBtn.disabled = true;
+    stopBtn.disabled = false;
+    exportBtn.disabled = true;
+    moduleSelect.disabled = true;
+
+    requestWake();
+    startClock();
+    updateStats();
+
+    if (m.setup) m.setup();
+    nextTrial();
+}
+
+function stopTest() {
+    S.active = false;
+    S.waiting = false;
+    T.clear();
+    stopClock();
+    releaseWake();
+    hideStim();
+
+    startBtn.disabled = false;
+    stopBtn.disabled = true;
+    exportBtn.disabled = S.rows.length === 0;
+    moduleSelect.disabled = false;
+    instructionCard.style.display = 'block';
+}
+
+function finishTest() {
+    stopTest();
+    beep(800, 0.3);
+    const m = MODS[S.mod];
+    const realRows = S.rows.filter(x => !x.practice);
+    let summaryHtml = `<b>TEST TAMAMLANDI!</b><br>Toplam Puan: ${computeScore()}<br>`;
+    if (m.extra) summaryHtml += '<br>' + m.extra(realRows).join('<br>');
+    if (S.mod === 'trailA' || S.mod === 'trailB') summaryHtml += '<br>' + trailLegsHtml(realRows);
+
+    $('instr-title').textContent = m.title + " - Sonuçlar";
+    $('instr-text').innerHTML = summaryHtml;
+    
+    if ($('consent').checked && API_URL) sendDataToServer();
+}
+
+startBtn.addEventListener('click', startTest);
+stopBtn.addEventListener('click', stopTest);
+
+/* ================== CSV DIŞA AKTAR / SUNUCU ================== */
+exportBtn.addEventListener('click', () => {
+    if (!S.rows.length) return;
+    const headers = Object.keys(S.rows[0]).join(',');
+    const csvRows = S.rows.map(r => Object.values(r).map(v => `"${v}"`).join(','));
+    const csvContent = "data:text/csv;charset=utf-8," + [headers, ...csvRows].join('\n');
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement("a");
+    link.setAttribute("href", encodedUri);
+    link.setAttribute("download", `SPPLab_${S.mod}_${S.athlete.id}_${Date.now()}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+});
+
+async function sendDataToServer() {
+    if (!API_URL) return;
+    $('sync-status').textContent = "Gönderiliyor...";
+    try {
+        const resp = await fetch(API_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ token: API_TOKEN, rows: S.rows })
+        });
+        if (resp.ok) $('sync-status').textContent = "Senkronize Edildi ✓";
+        else $('sync-status').textContent = "Hata!";
+    } catch (e) {
+        $('sync-status').textContent = "Bağlantı Hatası";
+    }
+}
+
+// Başlangıç Kurulumu
+updateModuleUI();
+</script>
+</body>
+</html>
