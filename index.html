@@ -378,7 +378,7 @@ T.set(()=>endTrial({correct:false,note:'Cevapsız',cond:cond,resp:'NONE'}),3000)
 simon:{
 title:"3. Simon Effect Testi",text:"Konuma aldanmayın. Kırmızı = SOL, Mavi = SAĞ butonuna basın. (2 alıştırma + 10 deneme)",
 eval:"Ölçülen Yetenek: Mekânsal Uyum / Çatışma.",formula:RT_FORMULA,practice:2,total:10,score:scRT(2),extra:condEffect,
-setup(){setDual("SOL · Kırmızı","SAĞ · Mavi");},
+setup(){setDual("Kırmızı","Mavi");},
 trial(){delayThenPresent(()=>{
 const left=Math.random()<0.5,red=Math.random()<0.5;
 const correct=red?'LEFT':'RIGHT',cond=(left?'LEFT':'RIGHT')===correct?'CONGRUENT':'INCONGRUENT';
