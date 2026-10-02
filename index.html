@@ -1,6 +1,3 @@
-Aşağıda önceki önerilerin çoğunu uygulayan yeni sürüm var. Kodu çalıştırıp test etmedim, bu yüzden telefonda bir kez denemeni öneririm.
-
-```html
 <!DOCTYPE html>
 <html lang="tr">
 <head>
@@ -35,11 +32,15 @@ h1 { margin: 0 0 6px 0; font-size: clamp(0.85rem, 3vw, 1.1rem); color: #00e5ff; 
 #game-area.fb-ok { animation: fbok .4s; }
 #game-area.fb-bad { animation: fbbad .4s; }
 
-#instruction-card { position: absolute; width: min(92%, 480px); max-height: 92%; overflow-y: auto; background: rgba(20,20,20,0.98); border: 2px solid #00e5ff; padding: 16px; border-radius: 12px; text-align: left; z-index: 1000; box-shadow: 0 0 20px rgba(0,229,255,0.2); }
+#instruction-card { position: absolute; width: min(92%, 480px); max-height: 92%; overflow-y: auto; background: rgba(20,20,20,0.98); border: 2px solid #00e5ff; padding: 16px; border-radius: 12px; text-align: left; z-index: 1000; box-shadow: 0 0 20px rgba(0,229,255,0.2); user-select: text; -webkit-user-select: text; }
 #instruction-card h3 { margin-top: 0; color: #00e5ff; font-size: clamp(0.95rem, 3.5vw, 1.2rem); text-align: center; }
 #instruction-card p { font-size: clamp(0.72rem, 2.6vw, 0.85rem); line-height: 1.5; color: #ddd; margin-bottom: 6px; }
 .eval-info { background: #181818; border-left: 3px solid #00e5ff; padding: 6px 8px; font-size: 0.72rem; color: #bbb; margin-top: 6px; border-radius: 0 4px 4px 0; }
 .score-info { background: #111; border-left: 3px solid #00e676; padding: 6px 8px; font-size: 0.72rem; color: #aaa; margin-top: 6px; border-radius: 0 4px 4px 0; }
+.legs { display: grid; grid-template-columns: 1fr 1fr; gap: 2px 12px; margin-top: 6px; font-size: 0.72rem; background: #111; padding: 6px 8px; border-radius: 6px; }
+.legs div { display: flex; justify-content: space-between; border-bottom: 1px solid #222; padding: 1px 0; }
+.legs .best { color: #00e676; font-weight: bold; }
+.legs .worst { color: #ff5252; font-weight: bold; }
 
 #antisaccade-touch-zone { display: none; position: absolute; width: 100%; height: 100%; top: 0; left: 0; z-index: 50; }
 .antisaccade-half { position: absolute; width: 50%; height: 100%; top: 0; }
@@ -183,7 +184,7 @@ button:disabled { background: #333 !important; color: #666 !important; cursor: n
 
 <script>
 /* ================== AYARLAR ================== */
-const APP_VERSION = "2.0";
+const APP_VERSION = "2.1";
 // Kendi Google Apps Script Web App URL'ni yaz. Boş bırakılırsa sunucuya gönderim yapılmaz.
 const API_URL = "";
 // Sunucu tarafında bu token'ı doğrulayın (istemcideki token tek başına güvenlik sağlamaz).
@@ -196,6 +197,7 @@ const pick = a => a[rnd(a.length)];
 const shuffle = a => { a = a.slice(); for (let i = a.length - 1; i > 0; i--) { const j = rnd(i + 1); [a[i], a[j]] = [a[j], a[i]]; } return a; };
 const mean = a => a.length ? a.reduce((x, y) => x + y, 0) / a.length : null;
 const fmt = v => v == null ? "–" : Math.round(v);
+const msSn = ms => `${ms} ms (${(ms / 1000).toFixed(2)} sn)`;
 
 const COLORS = {
     red:    { hex: '#ff1744', en: 'RED',    tr: 'KIRMIZI', freq: 400 },
@@ -304,7 +306,6 @@ function hideStim() {
 }
 
 /* ================== DENEME AKIŞI ================== */
-// Uyaranı çiz, 2 kare sonra (gerçekten ekrana geldikten sonra) süreyi başlat
 function present(setup) {
     const run = S.run;
     setup();
@@ -331,7 +332,8 @@ function record(o) {
         module: S.mod, trial: o.trial !== undefined ? o.trial : S.idx,
         practice: o.practice !== undefined ? (o.practice ? 1 : 0) : (isPractice() ? 1 : 0),
         condition: o.cond || '', response: o.resp || '',
-        rt: o.rt == null ? null : o.rt, correct: o.correct ? 1 : 0, note: o.note || '', score: 0
+        rt: o.rt == null ? null : o.rt, cum: o.cum == null ? null : o.cum,
+        correct: o.correct ? 1 : 0, note: o.note || '', score: 0
     };
     S.rows.push(row);
     row.score = computeScore();
@@ -379,9 +381,21 @@ function nbackStats(r) {
     const H = (hits + 0.5) / (m.length + 1), F = (fa + 0.5) / (n.length + 1);
     return { hits, nM: m.length, fa, nN: n.length, d: zinv(H) - zinv(F) };
 }
+// Trail: her doğru dokunuş bir "aralık" (leg) satırıdır. rt = aralık süresi, cum = başlangıçtan toplam süre
+const TRAIL_LEN = 20;
 function trailStats(r) {
-    const done = r.find(x => x.correct && x.condition === 'REAL');
-    return { sec: done ? done.rt / 1000 : null, err: r.filter(x => !x.correct).length };
+    const legs = r.filter(x => x.correct && x.condition === 'REAL');
+    const done = legs.length >= TRAIL_LEN;
+    return { legs, sec: done ? legs[legs.length - 1].cum / 1000 : null, err: r.filter(x => !x.correct).length };
+}
+function trailLegsHtml(legs) {
+    if (!legs.length) return '';
+    const rts = legs.map(l => l.rt), best = Math.min(...rts), worst = Math.max(...rts);
+    const items = legs.map(l => {
+        const cls = l.rt === best ? 'best' : l.rt === worst ? 'worst' : '';
+        return `<div class="${cls}"><span>${l.note}</span><span>${(l.rt / 1000).toFixed(2)} sn</span></div>`;
+    }).join('');
+    return `<b>Hedefler arası süreler:</b><div class="legs">${items}</div>`;
 }
 function computeScore() {
     const r = S.rows.filter(x => !x.practice);
@@ -481,518 +495,3 @@ const MODS = {
             });
         }
     },
-
-    antisaccade: {
-        title: "5. Anti-Saccade Testi", text: "Sarı ışık kısa süre görünür. Işığa DOKUNMAYIN; ekranın ZIT tarafına dokunun. (2 alıştırma + 10 deneme)",
-        eval: "Ölçülen Yetenek: Görsel Refleks İnhibisyonu. Not: Gerçek anti-saccade göz hareketi ölçer; bu dokunmatik uyarlama bir yaklaşımdır.", formula: RT_FORMULA, practice: 2, total: 10, score: scRT(2),
-        setup() {},
-        trial() {
-            delayThenPresent(() => {
-                const left = Math.random() < 0.5, correct = left ? 'RIGHT' : 'LEFT', cond = left ? 'TARGET_LEFT' : 'TARGET_RIGHT';
-                zoneBox.style.display = 'block';
-                setCircle(left ? 18 : 82, 42, { bg: '#ffea00', color: '#000', text: 'IŞIK', events: false });
-                T.set(() => { circle.style.display = 'none'; }, 300);
-                S.resp = (src, ev) => {
-                    const side = src === 'zoneL' ? 'LEFT' : src === 'zoneR' ? 'RIGHT' : null;
-                    if (!side) return;
-                    const ok = side === correct;
-                    endTrial({ correct: ok, note: ok ? 'Doğru Zıt Dokunma' : 'Refleks İhlali (ışık tarafına dokundu)', rt: rtFrom(ev), cond, resp: side });
-                };
-                T.set(() => endTrial({ correct: false, note: 'Cevapsız', cond, resp: 'NONE' }), 2500);
-            });
-        }
-    },
-
-    trailA: trailModule('A'),
-    trailB: trailModule('B'),
-
-    memory: {
-        title: "8. Görsel Dizilim Bellek (Corsi)", text: "Yanan karelerin sırasını takip edip aynı sırayla dokunun. Seviye 3'te başlar; üst üste 3 hatada test biter.",
-        eval: "Ölçülen Yetenek: Görsel-Mekânsal Çalışma Belleği (Corsi span).", formula: "Puan = En yüksek doğru seviye × 100 − Hata × 20", open: true, practice: 0,
-        score: r => spanOf(r) * 100 - errCount(r) * 20,
-        extra: r => [`Corsi span: ${spanOf(r)}`],
-        over: () => S.ctx.level > 9 || S.ctx.fails >= 3,
-        setup() { S.ctx.level = 3; S.ctx.fails = 0; memoryGrid.style.display = 'grid'; },
-        trial() {
-            const lvl = S.ctx.level;
-            statTrials.textContent = `Seviye ${lvl}`;
-            memoryGrid.innerHTML = '';
-            const blocks = [];
-            for (let i = 0; i < 9; i++) {
-                const b = document.createElement('div'); b.className = 'memory-block';
-                b.addEventListener('pointerdown', e => input('mem:' + i, e));
-                memoryGrid.appendChild(b); blocks.push(b);
-            }
-            const seq = [];
-            while (seq.length < lvl) { const c = rnd(9); if (seq[seq.length - 1] !== c) seq.push(c); }
-            const entered = [];
-            let i = 0;
-            const step = () => {
-                if (i >= seq.length) {
-                    S.resp = (src, ev) => {
-                        if (!src.startsWith('mem:')) return;
-                        const n = +src.slice(4), k = entered.length;
-                        entered.push(n);
-                        blocks[n].classList.add('lit'); T.set(() => blocks[n].classList.remove('lit'), 150);
-                        if (n !== seq[k]) {
-                            S.ctx.fails++;
-                            endTrial({ correct: false, note: `Seviye ${lvl} Başarısız`, cond: 'L' + lvl, resp: entered.join('-'), delay: 1000 });
-                        } else if (entered.length === seq.length) {
-                            S.ctx.level++; S.ctx.fails = 0;
-                            endTrial({ correct: true, note: `Seviye ${lvl} Başarılı`, rt: rtFrom(ev), cond: 'L' + lvl, resp: entered.join('-'), delay: 1000 });
-                        } else beep(600, 0.1);
-                    };
-                    S.t0 = performance.now(); S.waiting = true;
-                    return;
-                }
-                blocks[seq[i]].classList.add('lit'); beep(500 + i * 60, 0.2);
-                T.set(() => { blocks[seq[i]].classList.remove('lit'); i++; T.set(step, 300); }, 500);
-            };
-            T.set(step, 600);
-        }
-    },
-
-    nback: {
-        title: "9. Spatial N-Back Bellek", text: "Yanan kare, N adım ÖNCEKİ ile aynıysa 'EŞLEŞTİ', değilse 'FARKLI' (40 deneme). İlk N deneme puanlanmaz.",
-        eval: "Ölçülen Yetenek: Bellek Güncelleme (sinyal tespit: d′).", formula: "Puan = d′ × 250 (0–1000)", practice: 0, total: 40,
-        score: r => Math.min(1000, nbackStats(r).d * 250),
-        extra: r => { const s = nbackStats(r); return [`N seviyesi: ${S.ctx.N}`, `İsabet: ${s.hits}/${s.nM}`, `Yanlış alarm: ${s.fa}/${s.nN}`, `d′: ${s.d.toFixed(2)}`]; },
-        setup() {
-            S.ctx.N = parseInt($('nback-n-select').value) || 1; S.ctx.hist = [];
-            setDual("EŞLEŞTİ", "FARKLI");
-            memoryGrid.style.display = 'grid'; memoryGrid.innerHTML = '';
-            for (let i = 0; i < 9; i++) { const b = document.createElement('div'); b.className = 'memory-block'; memoryGrid.appendChild(b); }
-        },
-        trial() {
-            const N = S.ctx.N, h = S.ctx.hist, blocks = memoryGrid.children;
-            const canCompare = h.length >= N, ref = canCompare ? h[h.length - N] : null;
-            let pos;
-            if (canCompare && Math.random() < 0.3) pos = ref;
-            else do { pos = rnd(9); } while (canCompare && pos === ref);
-            const isMatch = canCompare && pos === ref;
-            h.push(pos);
-            const cond = canCompare ? (isMatch ? 'MATCH' : 'NONMATCH') : 'WARMUP';
-            present(() => { blocks[pos].classList.add('lit'); beep(600, 0.1); });
-            T.set(() => blocks[pos].classList.remove('lit'), 500);
-            S.resp = (src, ev) => {
-                if (src !== 'left' && src !== 'right') return;
-                const said = src === 'left', ok = said === isMatch;
-                endTrial({ correct: ok, note: ok ? 'Doğru' : 'Hata', rt: rtFrom(ev), cond, resp: said ? 'MATCH' : 'DIFF', practice: !canCompare });
-            };
-            T.set(() => endTrial({ correct: false, note: 'Cevapsız', cond, resp: 'NONE', practice: !canCompare }), 2000);
-        }
-    },
-
-    digit_span: {
-        title: "10. Görsel Sayı Dizilimi Belleği", text: "Tek tek gösterilen sayıları aklınızda tutup aynı sırayla girin. Doğruda dizi uzar, hatada kısalır (10 deneme).",
-        eval: "Ölçülen Yetenek: Kısa Süreli Sayı Belleği (adaptif span).", formula: "Puan = En uzun doğru dizi × 100 − Hata × 20", practice: 0, total: 10,
-        score: r => spanOf(r) * 100 - errCount(r) * 20,
-        extra: r => [`Digit span: ${spanOf(r)}`],
-        setup() {
-            S.ctx.len = parseInt($('digit-length-select').value) || 4;
-            numpadGrid.innerHTML = '';
-            for (let i = 1; i <= 9; i++) {
-                const b = document.createElement('div'); b.className = 'num-btn'; b.textContent = i;
-                b.addEventListener('pointerdown', e => input('num:' + i, e));
-                numpadGrid.appendChild(b);
-            }
-        },
-        trial() {
-            const L = S.ctx.len, seq = [];
-            while (seq.length < L) { const c = rnd(9) + 1; if (seq[seq.length - 1] !== c) seq.push(c); }
-            const entered = [];
-            let i = 0;
-            const show = () => {
-                if (i >= L) {
-                    circle.style.display = 'none'; numpadGrid.style.display = 'grid';
-                    S.resp = (src, ev) => {
-                        if (!src.startsWith('num:')) return;
-                        const n = +src.slice(4), k = entered.length;
-                        entered.push(n);
-                        if (n !== seq[k]) {
-                            S.ctx.len = Math.max(2, L - 1);
-                            endTrial({ correct: false, note: `Hatalı Dizi (${seq.join('-')})`, cond: 'L' + L, resp: entered.join('-'), delay: 1000 });
-                        } else if (entered.length === L) {
-                            S.ctx.len = Math.min(12, L + 1);
-                            endTrial({ correct: true, note: `Doğru Dizi (${seq.join('-')})`, rt: rtFrom(ev), cond: 'L' + L, resp: entered.join('-'), delay: 1000 });
-                        } else beep(700, 0.08);
-                    };
-                    S.t0 = performance.now(); S.waiting = true;
-                    return;
-                }
-                setCircle(50, 42, { bg: '#222', color: '#00e5ff', text: seq[i], events: false }); beep(600, 0.1);
-                T.set(() => { circle.style.display = 'none'; i++; T.set(show, 400); }, 800);
-            };
-            T.set(show, 800);
-        }
-    },
-
-    sprint_ball: {
-        title: "11. Saha Depar (Top Getirme)", text: "Sesli/görsel renk komutuna göre depar atın, geri dönüp ekrandaki daireye dokunun. (2 alıştırma + 10 deneme)",
-        eval: "Ölçülen Yetenek: İşitsel-görsel reaksiyon + depar süresi (komuttan dokunuşa toplam süre). Not: Konuşma sentezi gecikmesi cihaza bağlıdır.", formula: FIELD_FORMULA, practice: 2, total: 10, score: scRT(10),
-        setup() {},
-        trial() {
-            delayThenPresent(() => {
-                const k = pick(KEYS);
-                setCircle(50, 42, { bg: COLORS[k].hex, color: '#000', text: COLORS[k].en });
-                speak(COLORS[k].en); beep(COLORS[k].freq);
-                S.resp = (src, ev) => { if (src !== 'circle') return; endTrial({ correct: true, note: 'Tamamlandı', rt: rtFrom(ev), cond: k.toUpperCase(), resp: 'TAP' }); };
-                T.set(() => endTrial({ correct: false, note: 'Süre aşımı', cond: k.toUpperCase(), resp: 'NONE' }), 20000);
-            });
-        }
-    },
-
-    agility_run: {
-        title: "12. Renk Koni Çeviklik Deparı", text: "Yanan konuya depar atın ve dokunun. (2 alıştırma + 10 deneme)",
-        eval: "Ölçülen Yetenek: Çeviklik / yönlü reaksiyon.", formula: FIELD_FORMULA, practice: 2, total: 10, score: scRT(10),
-        setup() { setGrid({ labels: KEYS.map(k => COLORS[k].en) }); },
-        trial() {
-            delayThenPresent(() => {
-                const k = pick(KEYS);
-                lightCone(k); speak(COLORS[k].en); beep(600);
-                S.resp = (src, ev) => {
-                    if (!src.startsWith('cone:')) return;
-                    const ok = src === 'cone:' + k;
-                    endTrial({ correct: ok, note: ok ? 'Doğru Koni' : 'Yanlış Koni', rt: rtFrom(ev), cond: k.toUpperCase(), resp: src.slice(5).toUpperCase() });
-                };
-                T.set(() => endTrial({ correct: false, note: 'Cevapsız', cond: k.toUpperCase(), resp: 'NONE' }), 4000);
-            });
-        }
-    },
-
-    complex_agility: {
-        title: "13. Karmaşık Çift Komut Deparı", text: "Sesli komut ile yanan koninin rengi EŞLEŞİRSE o koniye depar atıp dokunun; eşleşmezse HİÇBİR ŞEYE dokunmayın. (2 alıştırma + 10 deneme)",
-        eval: "Ölçülen Yetenek: Saha İçi Karar Verme (Go/No-Go).", formula: FIELD_FORMULA, practice: 2, total: 10, score: scRT(10),
-        extra: r => [`Hatalı depar: ${r.filter(x => x.condition === 'NOGO' && !x.correct).length}`, `Cevapsız depar: ${r.filter(x => x.condition === 'GO' && !x.correct).length}`],
-        setup() { setGrid({ labels: KEYS.map(k => COLORS[k].en) }); },
-        trial() {
-            delayThenPresent(() => {
-                const k = pick(KEYS), spoken = Math.random() < 0.5 ? k : pick(KEYS.filter(x => x !== k));
-                const match = spoken === k, cond = match ? 'GO' : 'NOGO';
-                lightCone(k); speak(COLORS[spoken].en);
-                S.resp = (src, ev) => {
-                    if (!src.startsWith('cone:')) return;
-                    const rt = rtFrom(ev), resp = src.slice(5).toUpperCase();
-                    if (!match) endTrial({ correct: false, note: 'Hatalı Depar', rt, cond, resp });
-                    else { const ok = src === 'cone:' + k; endTrial({ correct: ok, note: ok ? 'Doğru Depar' : 'Yanlış Koni', rt, cond, resp }); }
-                };
-                if (match) T.set(() => endTrial({ correct: false, note: 'Cevapsız', cond, resp: 'NONE' }), 4000);
-                else T.set(() => endTrial({ correct: true, note: 'Doğru Frenleme', cond, resp: 'NONE' }), 1500);
-            });
-        }
-    },
-
-    choice_react: {
-        title: "14. Çoklu Seçenek Reaksiyon Deparı", text: "Üstte yazan renge ait koniye depar atıp dokunun. (2 alıştırma + 10 deneme)",
-        eval: "Ölçülen Yetenek: Çoklu seçenekli reaksiyon.", formula: FIELD_FORMULA, practice: 2, total: 10, score: scRT(10),
-        setup() { setGrid({ compact: true, allOn: true }); },
-        trial() {
-            delayThenPresent(() => {
-                const k = pick(KEYS);
-                setCircle(50, 22, { wide: true, bg: '#222', color: '#fff', text: COLORS[k].en, events: false });
-                S.resp = (src, ev) => {
-                    if (!src.startsWith('cone:')) return;
-                    const ok = src === 'cone:' + k;
-                    endTrial({ correct: ok, note: ok ? 'Doğru Koni' : 'Yanlış Koni', rt: rtFrom(ev), cond: k.toUpperCase(), resp: src.slice(5).toUpperCase() });
-                };
-                T.set(() => endTrial({ correct: false, note: 'Cevapsız', cond: k.toUpperCase(), resp: 'NONE' }), 4000);
-            });
-        }
-    },
-
-    visual_search: {
-        title: "15. Görsel Arama & Depar", text: "Üstte gösterilen sembolü konilerin üzerinde bulun ve o koniye depar atıp dokunun. Semboller her denemede yer değiştirir. (2 alıştırma + 10 deneme)",
-        eval: "Ölçülen Yetenek: Görsel Arama + yönlü reaksiyon.", formula: FIELD_FORMULA, practice: 2, total: 10, score: scRT(10),
-        setup() { setGrid({ compact: true, allOn: true }); },
-        trial() {
-            delayThenPresent(() => {
-                const syms = shuffle(SYMBOLS), target = pick(SYMBOLS);
-                cones.forEach((c, i) => { c.textContent = syms[i]; });
-                setCircle(50, 22, { wide: true, bg: '#222', color: '#00e5ff', text: target, events: false });
-                S.resp = (src, ev) => {
-                    if (!src.startsWith('cone:')) return;
-                    const idx = KEYS.indexOf(src.slice(5)), ok = syms[idx] === target;
-                    endTrial({ correct: ok, note: ok ? 'Doğru Sembol' : 'Yanlış Sembol', rt: rtFrom(ev), cond: target, resp: syms[idx] });
-                };
-                T.set(() => endTrial({ correct: false, note: 'Cevapsız', cond: target, resp: 'NONE' }), 6000);
-            });
-        }
-    }
-};
-
-/* ---------- Trail Making ---------- */
-function trailModule(kind) {
-    const real = kind === 'A' ? Array.from({ length: 20 }, (_, i) => String(i + 1)) : ['1','A','2','B','3','C','4','D','5','E','6','F','7','G','8','H','9','I','10','J'];
-    const demo1 = kind === 'A' ? ['1','2','3','4'] : ['1','A','2','B'];
-    const demo2 = kind === 'A' ? ['1','2','3','4','5'] : ['1','A','2','B','3'];
-    return {
-        title: kind === 'A' ? "6. Trail Making Test A" : "7. Trail Making Test B",
-        text: kind === 'A' ? "1'den 20'ye kadar sayılara sırasıyla dokunun. Önce 2 kısa alıştırma yapılır." : "1-A-2-B-3-C... şeklinde sayı ve harfe dönüşümlü dokunun. Önce 2 kısa alıştırma yapılır.",
-        eval: kind === 'A' ? "Ölçülen Yetenek: Görsel Tarama & Motor Hız." : "Ölçülen Yetenek: Görev Değiştirme / Bilişsel Esneklik.",
-        formula: "Puan = 1000 − Süre(sn)×8 − Hata×30 (sadece GERÇEK aşama)", open: true, practice: 0,
-        score: r => { const s = trailStats(r); return s.sec == null ? 0 : 1000 - s.sec * 8 - s.err * 30; },
-        extra: r => { const s = trailStats(r); return [`Tamamlama süresi: ${s.sec == null ? '–' : s.sec.toFixed(1) + ' sn'}`, `Sıra hatası: ${s.err}`]; },
-        setup() { S.ctx.stage = 'P1'; trailArea.style.display = 'block'; },
-        trial() {
-            const st = S.ctx.stage;
-            const seq = st === 'P1' ? demo1 : st === 'P2' ? demo2 : real;
-            S.idx = { P1: 1, P2: 2, REAL: 3 }[st];
-            statTrials.textContent = st === 'REAL' ? 'GERÇEK TEST' : `Pratik ${S.idx}/2`;
-            const isReal = st === 'REAL';
-            trailArea.innerHTML = '';
-            const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-            trailArea.appendChild(svg);
-            const W = trailArea.clientWidth, H = trailArea.clientHeight, sz = 46, minD = 58, pts = [];
-            seq.forEach(() => {
-                let p, tries = 0;
-                do { p = { x: rnd(Math.max(1, W - sz)), y: rnd(Math.max(1, H - sz)) }; tries++; }
-                while (tries < 600 && pts.some(q => Math.hypot(q.x - p.x, q.y - p.y) < minD));
-                pts.push(p);
-            });
-            S.ctx.next = 0; S.ctx.prev = null;
-            seq.forEach((val, i) => {
-                const node = document.createElement('div');
-                node.className = 'trail-node'; node.textContent = val;
-                node.style.left = pts[i].x + 'px'; node.style.top = pts[i].y + 'px';
-                node.addEventListener('pointerdown', ev => {
-                    ev.preventDefault();
-                    if (!S.active || !S.waiting || node.classList.contains('done')) return;
-                    const elapsed = Math.round(performance.now() - S.t0);
-                    if (val === seq[S.ctx.next]) {
-                        beep(400 + S.ctx.next * 30, 0.1);
-                        node.classList.add('done');
-                        const c = { x: pts[i].x + sz / 2, y: pts[i].y + sz / 2 };
-                        if (S.ctx.prev) {
-                            const ln = document.createElementNS('http://www.w3.org/2000/svg', 'line');
-                            ln.setAttribute('x1', S.ctx.prev.x); ln.setAttribute('y1', S.ctx.prev.y);
-                            ln.setAttribute('x2', c.x); ln.setAttribute('y2', c.y);
-                            ln.setAttribute('stroke', '#00e676'); ln.setAttribute('stroke-width', '3');
-                            svg.appendChild(ln);
-                        }
-                        S.ctx.prev = c; S.ctx.next++;
-                        if (S.ctx.next >= seq.length) {
-                            S.waiting = false;
-                            record({ correct: true, rt: elapsed, note: `Aşama ${st}`, cond: st, practice: !isReal });
-                            fb(true);
-                            if (isReal) { T.set(finishTest, 400); }
-                            else { S.ctx.stage = st === 'P1' ? 'P2' : 'REAL'; T.set(MODS[S.mod].trial, 1000); }
-                        }
-                    } else {
-                        record({ correct: false, rt: elapsed, note: `Sıra Hatası (${val})`, cond: st, practice: !isReal });
-                        fb(false); beep(150, 0.2);
-                    }
-                });
-                trailArea.appendChild(node);
-            });
-            startClock();
-            S.t0 = performance.now(); S.waiting = true;
-        }
-    };
-}
-
-/* ================== BAŞLAT / DURDUR / BİTİR ================== */
-function readAthlete() {
-    const id = $('athlete-id').value.trim().slice(0, 32);
-    const age = Number($('athlete-age').value), exp = Number($('athlete-exp').value);
-    if (!id) { alert('Sporcu ID gerekli (gerçek isim yerine takma ID kullanın).'); return null; }
-    if (!(age >= 5 && age <= 99)) { alert('Yaş 5–99 arasında olmalı.'); return null; }
-    if (!(exp >= 0 && exp <= 80)) { alert('Spor yılı 0–80 arasında olmalı.'); return null; }
-    return {
-        id, age, exp,
-        gender: $('athlete-gender').value, sport: $('athlete-sport').value.trim().slice(0, 32) || 'Genel', dominant: $('athlete-dominant').value,
-        screen: `${screen.width}x${screen.height}@${window.devicePixelRatio || 1}`, ua: navigator.userAgent
-    };
-}
-
-function resetLayout(keepStats) {
-    T.clear(); stopClock();
-    const mod = moduleSelect.value, m = MODS[mod];
-    instructionCard.style.display = 'block';
-    $('instr-eval').style.display = ''; $('instr-score-formula').style.display = '';
-    $('instr-title').textContent = m.title; $('instr-text').textContent = m.text;
-    $('instr-eval').textContent = m.eval; $('instr-score-formula').textContent = m.formula;
-    $('opt-digit').style.display = mod === 'digit_span' ? 'flex' : 'none';
-    $('opt-nback').style.display = mod === 'nback' ? 'flex' : 'none';
-    [circle, zoneBox, dualButtons, spatialGrid, memoryGrid, numpadGrid, trailArea].forEach(e => e.style.display = 'none');
-    circle.className = ''; gameArea.classList.remove('has-buttons');
-    memoryGrid.innerHTML = ''; trailArea.innerHTML = '';
-    if (!keepStats) {
-        statTimer.textContent = '0.00 s'; statScore.textContent = '0'; statErrors.textContent = '0';
-        statTrials.textContent = m.open ? '–' : `0/${m.total}`;
-    }
-}
-
-function startTest() {
-    const athlete = readAthlete(); if (!athlete) return;
-    const mod = moduleSelect.value, m = MODS[mod];
-    S.run++; S.active = true; S.mod = mod; S.athlete = athlete;
-    S.rows = []; S.idx = 0; S.waiting = false; S.resp = null; S.ctx = {};
-    S.total = m.total || 0; S.practiceN = m.practice || 0;
-    S.sessionId = Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
-
-    resetLayout(false);
-    instructionCard.style.display = 'none';
-    $('opt-digit').style.display = 'none'; $('opt-nback').style.display = 'none';
-    startBtn.disabled = true; stopBtn.disabled = false; exportBtn.disabled = true; moduleSelect.disabled = true;
-
-    m.setup();
-    requestWake();
-    startClock();
-    nextTrial();
-}
-
-function endUI() {
-    startBtn.disabled = false; stopBtn.disabled = true; moduleSelect.disabled = false;
-    exportBtn.disabled = S.rows.length === 0;
-}
-
-function stopTest(msg) {
-    S.active = false; S.run++; S.waiting = false; S.resp = null;
-    T.clear(); stopClock(); releaseWake();
-    if ('speechSynthesis' in window) speechSynthesis.cancel();
-    resetLayout(true);
-    if (typeof msg === 'string') $('instr-text').textContent = msg + ' ' + MODS[moduleSelect.value].text;
-    endUI();
-}
-
-function finishTest() {
-    if (!S.active) return;
-    const elapsed = ((performance.now() - S.clockStart) / 1000).toFixed(1);
-    S.active = false; S.run++; S.waiting = false; S.resp = null;
-    T.clear(); stopClock(); releaseWake();
-
-    const m = MODS[S.mod], r = S.rows.filter(x => !x.practice), score = computeScore();
-    const lines = [`Süre: ${elapsed} sn`, `<b>Puan: ${score}</b>`];
-    if (r.length) {
-        if (S.mod !== 'trailA' && S.mod !== 'trailB') {
-            lines.push(`Doğruluk: %${Math.round(okRows(r).length / r.length * 100)}`, `Ort. RT (doğru): ${fmt(meanRT(r))} ms`);
-        }
-        lines.push(`Hata: ${errCount(r)}`);
-        if (m.extra) lines.push(...m.extra(r));
-    }
-    resetLayout(true);
-    $('instr-title').textContent = "Test Tamamlandı!";
-    $('instr-text').innerHTML = lines.join('<br>');
-    $('instr-eval').style.display = 'none'; $('instr-score-formula').style.display = 'none';
-    endUI();
-    saveSession();
-}
-
-/* ================== VERİ: KAYIT, CSV, SENKRON ================== */
-function lsGet(k) { try { return JSON.parse(localStorage.getItem(k) || '[]'); } catch (e) { return []; } }
-function lsSet(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) { console.warn('localStorage', e); } }
-function setSync(t) { $('sync-status').textContent = t; }
-
-function saveSession() {
-    if (!S.rows.length) return;
-    const all = lsGet('spplab_sessions'); all.push({ sessionId: S.sessionId, rows: S.rows });
-    lsSet('spplab_sessions', all.slice(-30));
-    if ($('consent').checked && API_URL) {
-        const q = lsGet('spplab_pending'); q.push({ sessionId: S.sessionId, rows: S.rows }); lsSet('spplab_pending', q);
-        flushPending();
-    } else {
-        setSync($('consent').checked ? 'API_URL tanımlı değil: veri cihazda.' : 'Rıza verilmedi: veri sadece cihazda.');
-    }
-}
-
-async function flushPending() {
-    if (!API_URL || !$('consent').checked) return;
-    const q = lsGet('spplab_pending'); if (!q.length) return;
-    const rest = [];
-    for (const b of q) {
-        try {
-            await fetch(API_URL, { method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify({ token: API_TOKEN, sessionId: b.sessionId, rows: b.rows }) });
-        } catch (e) { console.warn('Gönderim hatası', e); rest.push(b); }
-    }
-    lsSet('spplab_pending', rest);
-    setSync(rest.length ? `${rest.length} oturum gönderilmeyi bekliyor` : 'Gönderildi (sunucu yanıtı doğrulanamaz)');
-}
-window.addEventListener('online', flushPending);
-
-const CSV_COLS = [
-    ['sessionId', 'Oturum_ID'], ['timestamp', 'Zaman_Damgasi'], ['version', 'Surum'], ['athleteId', 'Sporcu_ID'], ['age', 'Yas'], ['gender', 'Cinsiyet'],
-    ['sport', 'Brans'], ['dominantSide', 'Baskin_Taraf'], ['experienceYears', 'Deneyim_Yili'], ['screen', 'Ekran'], ['userAgent', 'Tarayici'],
-    ['module', 'Modul'], ['trial', 'Deneme'], ['practice', 'Alistirma'], ['condition', 'Kosul'], ['response', 'Yanit'],
-    ['rt', 'Reaksiyon_Zamani_ms'], ['correct', 'Dogru_Mu'], ['note', 'Aciklama'], ['score', 'Hesaplanan_Puan']
-];
-function csvEsc(v) {
-    if (v === null || v === undefined) return '';
-    let s = String(v);
-    if (typeof v === 'string' && /^[=+\-@\t\r]/.test(s)) s = "'" + s; // formül enjeksiyonu koruması
-    if (/[",;\n\r]/.test(s)) s = '"' + s.replace(/"/g, '""') + '"';
-    return s;
-}
-function exportCSV() {
-    if (!S.rows.length) return;
-    const head = CSV_COLS.map(c => c[1]).join(',');
-    const body = S.rows.map(r => CSV_COLS.map(c => csvEsc(r[c[0]])).join(',')).join('\n');
-    const blob = new Blob(["\uFEFF" + head + "\n" + body], { type: 'text/csv;charset=utf-8' });
-    const url = URL.createObjectURL(blob), a = document.createElement('a');
-    a.href = url; a.download = `SPPLab_${S.athlete ? S.athlete.id : 'data'}_${S.mod}_${new Date().toISOString().slice(0, 10)}.csv`;
-    document.body.appendChild(a); a.click(); document.body.removeChild(a);
-    setTimeout(() => URL.revokeObjectURL(url), 1000);
-}
-
-/* ================== OLAYLAR ================== */
-moduleSelect.addEventListener('change', () => resetLayout(false));
-startBtn.addEventListener('click', () => { initAudio(); startTest(); });
-stopBtn.addEventListener('click', () => stopTest());
-exportBtn.addEventListener('click', exportCSV);
-
-circle.addEventListener('pointerdown', e => input('circle', e));
-$('antisaccade-left-zone').addEventListener('pointerdown', e => input('zoneL', e));
-$('antisaccade-right-zone').addEventListener('pointerdown', e => input('zoneR', e));
-btnLeft.addEventListener('pointerdown', e => input('left', e));
-btnRight.addEventListener('pointerdown', e => input('right', e));
-cones.forEach(c => c.addEventListener('pointerdown', e => input('cone:' + c.dataset.key, e)));
-
-document.addEventListener('visibilitychange', () => {
-    if (document.hidden && S.active) stopTest('Sekme arka plana alındığı için test durduruldu.');
-});
-
-resetLayout(false);
-flushPending();
-</script>
-</body>
-</html>
-```
-
-### Neler değişti
-
-- **Merkezi zamanlayıcı (`T`):** Tüm `setTimeout`'lar buradan geçiyor. "Durdur" veya bitişte hepsi iptal olur, eski deneme yeni denemeyi bozmaz.
-- **Ölçüm:**
-  - `pointerdown` kullanılıyor.
-  - Süre uyaran ekrana çizildikten 2 kare sonra başlıyor.
-  - Bekleme süresi 500–1800 ms.
-  - Sekme arka plana alınırsa test duruyor.
-  - Wake lock ekleniyor.
-- **Bekleme süresi/zaman aşımı:** Tüm testlerde var. Cevapsız deneme hata sayılıyor ve RT `null` kaydediliyor. Doğru baskılamada artık sahte `0 ms` yok.
-- **Alıştırma:** Reaksiyon testlerinde 2 alıştırma denemesi var. Trail'de demolar da dahil olmak üzere alıştırmalar `Alistirma=1` olarak ayrılıyor ve puana girmiyor.
-- **Puan formülleri:** Kartta yazan formül ile koddaki hesap aynı. Her test grubunun kendi formülü var.
-- **Stroop:** Gerçek Stroop oldu. Yazı rengini 4 renkli kutudan seçiyorsunuz, kelimeler Türkçe, uyumlu oran %33.
-- **Simon ve Flanker:** `CONGRUENT` ve `INCONGRUENT` etiketleri kaydediliyor. Flanker'a uyumlu uyaranlar eklendi. Bitişte uyumlu/uyumsuz etkisi gösteriliyor.
-- **Anti-saccade:** Işık 300 ms görünüp kayboluyor.
-- **Trail:** Düğümler çakışmıyor, doğru dokunuşlarda çizgi çiziliyor. Saat her aşamada yeniden başlıyor.
-- **Corsi:** Art arda aynı blok gelmiyor, span hesaplanıyor.
-- **N-Back:** N seçilebiliyor (1/2/3), cevap süresi sınırı var, ilk N deneme puanlanmıyor. İsabet, yanlış alarm ve d′ hesaplanıyor.
-- **Digit Span:** Adaptif. Doğruda dizi uzuyor, hatada kısalıyor. Span hesaplanıyor.
-- **Görsel Arama:** Gerçek arama yapıyor. Semboller koniler üzerinde her denemede karışıyor.
-- **Veri:**
-  - CSV doğru kaçırılıyor ve formül enjeksiyonuna karşı korumalı.
-  - Oturum ID, zaman damgası, sürüm, ekran ve tarayıcı bilgisi kaydediliyor.
-  - Rıza kutusu var.
-  - Gönderim başarısız olursa `localStorage` kuyruğunda bekliyor ve internet gelince yeniden deneniyor.
-  - Girdi doğrulama var.
-- **Arayüz:** Doğru/yanlış için ekran çerçevesi flaşı ve ses aç/kapat düğmesi eklendi. Daire `translate(-50%,-50%)` ile ortalanıyor.
-
-### Senin yapman gerekenler
-
-1. **`API_URL` boş bırakıldı.** Kendi Apps Script adresini yaz. Eski URL'i açıkta bırakmamak için kasıtlı yaptım.
-2. **`API_TOKEN`:** Apps Script tarafında bu token'ı doğrulayıp oran sınırlaması koy. İstemcideki token tek başına güvenlik sağlamaz.
-3. **`no-cors` sınırı:** Gönderimin sunucuda kabul edilip edilmediği hâlâ doğrulanamaz. Durum metni bunu belirtiyor.
-
-### Hâlâ geçerli sınırlar
-
-- Saha testlerinde (11–15) gerçek depar süresi ölçülemez, sadece komuttan dokunuşa geçen süre ölçülür. Konuşma sentezi gecikmesi de buna karışır.
-- Ekran dönmesi için yön kilidi eklemedim, testi tek yönde yapmanı öneririm.
-- PWA/offline desteği yok. İstersen `manifest` ve service worker'ı ayrıca yazabilirim.
